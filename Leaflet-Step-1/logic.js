@@ -1,115 +1,60 @@
 
+  // earthquaks for the past 4.5 months 
+  var usgs_data = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_month.geojson';
 
-// earthquaks for the past 4.5 months 
-var usgs_data = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/4.5_month.geojson';
 
-// center of united states
+// Create a map object.
 var myMap = L.map("map", {
-  center: [37.09, -95.71],
-  zoom: 3
+    center: [15.5994, -28.6731],
+    zoom: 3
 });
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(myMap);
-
-d3.json(usgs_data).then(function (data) 
-{
-
-function choosecolor(size){
-  var color = "red";
-  if(size>=200) color = "yellow";
-  else if(size>=100) color = "blue";
-  else if(size>=90) color = "green";
-  return color;
-}
-
-for (var i = 0; i < data.length; i++) {
-
-  var earthquake = data[i];
-  location = [data.geometry.latitude, data.geometry.longitude];
-  earthquake_list.Push(L.circle(location), {
-    fillOpacity: 0.75,
-    color: "black",
-    weight: 0.5,
-    fillColor: chooseColor(x.geometry.coordinates[2]),
-    radius: x.properties.mag * 100000
-  }).bindPopup(`<h1>${x.name}</h1> <hr> <h3>Population: ${x.points.toLocaleString()}</h3>`)
-  .addTo(myMap)
+  
+  // Add a tile layer.
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(myMap);
 
 
-}
-
-// data.forEach(x=>{
-//   L.circle(x.location, {
-//     fillOpacity: 0.25,
-//     color: "white",
-//     fillColor: choosecolor(x.points),
-//     stroke: 0.1,
-//     radius: Math.sqrt(x.points) * 10000
-//   })
-//   .bindPopup(`<h1>${x.name}</h1> <hr> <h3>Population: ${x.points.toLocaleString()}</h3>`)
-//   .addTo(myMap)
-// })
-});
-
-
-
-// function createFeatures(earthquakeData) {
-// // console.log(earthquakeData.features)
-//   // Define a function that we want to run once for each feature in the features array.
-//   // Give each feature a popup that describes the place and time of the earthquake.
-//   function onEachFeature(feature, layer) {
-//     // layer.bindPopup(`<h3>${feature.properties.place}</h3><hr><p>${new Date(feature.properties.time)}</p>`);
+  d3.json(usgs_data).then(function (data) {
     
-//   }
+    createMaplayers(data.features)    
+  });
 
-//   // Create a GeoJSON layer that contains the features array on the earthquakeData object.
-//   // Run the onEachFeature function once for each piece of data in the array.
-//   var earthquakes = L.geoJSON(earthquakeData, {
-//     onEachFeature: onEachFeature 
-//   });
 
-// //   // Send our earthquakes layer to the createMap function/
-// //   console.log(earthquakes);
-//   createMap(earthquakes);
-// }
 
-// function createMap(earthquakes) {
 
-//   // Create the base layers.
-//   var street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-//     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-//   })
+  function createMaplayers(earthquakeData)
+    {
+        console.log(earthquakeData);
 
-//   var topo = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-//     attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
-//   });
+    var earthquake_list = [];
+    var earthquake_location = [];
 
-//   // Create a baseMaps object.
-//   var baseMaps = {
-//     "Street Map": street,
-//     "Topographic Map": topo
-//   };
+    function chooseColor(size) {
+        if (size > 90) color = "rgb(255,95,102)";
+        else if (size > 70) color = "rgb(255,164,101)";
+        else if (size > 50) color = "rgb(250,220,66)";
+        else if (size > 30) color = "rgb(250,220,66)";
+        else if (size > 10) color = "rgb(218,245,70)";
+        else color = "rgb(153,247,69)";
+        return color;
+    }
+  
 
-//   // Create an overlay object to hold our overlay.
-//   var overlayMaps = {
-//     Earthquakes: earthquakes
-//   };
+    earthquakeData.forEach(x=>{
+            console.log(x.points);
+            earthquake_location = [x.geometry.coordinates[1], x.geometry.coordinates[0]];
+            earthquake_list.push(L.circle(x.location, 
+                {
+                fillOpacity: 0.25,
+                color: "white",
+                fillColor: chooseColor(x.geometry.coordinates[2]),
+                stroke: 0.1,
+                radius: x.properties.mag * 100000
+                })
+                .bindPopup(`<h3>${x.properties.place}</h3><hr><p>${new Date(x.properties.time)}</p>`)
+                .addTo(myMap));
+            });
+    };
 
-//   // Create our map, giving it the streetmap and earthquakes layers to display on load.
-//   var myMap = L.map("map", {
-//     center: [
-//       37.09, -95.71
-//     ],
-//     zoom: 5,
-//     layers: [street, earthquakes]
-    
-//   });
 
-  // Create a layer control.
-  // Pass it our baseMaps and overlayMaps.
-  // Add the layer control to the map.
-  // L.control.layers(baseMaps, overlayMaps, {
-  //   collapsed: false
-  // }).addTo(myMap);
